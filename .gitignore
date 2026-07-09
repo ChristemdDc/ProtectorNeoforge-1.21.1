@@ -17,3 +17,6 @@ run-server-log.txt
 
 # Sistema
 .DS_Store
+
+# jar de AeroClaims (compileOnly, tercero — no versionar)
+libs/

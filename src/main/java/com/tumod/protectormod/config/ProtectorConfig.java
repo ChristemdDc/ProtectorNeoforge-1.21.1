@@ -15,6 +15,8 @@ public class ProtectorConfig {
     public static final ModConfigSpec.IntValue CLANLESS_PROTECTIONS;
     /** Máximo de alianzas que un clan puede tener a la vez. */
     public static final ModConfigSpec.IntValue MAX_ALLIANCES;
+    /** Slots de claim de AeroClaims por jugador (integración standalone, sin OPAC/FTB). */
+    public static final ModConfigSpec.IntValue AERO_MAX_CLAIMS_PER_PLAYER;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -30,6 +32,13 @@ public class ProtectorConfig {
         MAX_ALLIANCES = builder
                 .comment("Máximo de alianzas que un clan puede tener a la vez. Default: 2")
                 .defineInRange("maxAlliances", 2, 0, Integer.MAX_VALUE);
+        builder.pop();
+
+        builder.push("aeroclaims");
+        AERO_MAX_CLAIMS_PER_PLAYER = builder
+                .comment("Integración con Aeronautics Claims (standalone, sin OPAC/FTB):",
+                         "slots de claim que tiene cada jugador para reclamar ships. Default: 20")
+                .defineInRange("aeroMaxClaimsPerPlayer", 20, 0, Integer.MAX_VALUE);
         builder.pop();
 
         SPEC = builder.build();

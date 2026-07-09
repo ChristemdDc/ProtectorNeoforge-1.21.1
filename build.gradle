@@ -65,10 +65,11 @@ neoForge {
 }
 
 dependencies {
-    // ── Integracion con Aeronautics Claims (Fases 2-3) ──
-    // Solo se necesita en compilacion (la API la provee aeroclaims en runtime).
-    // Guardado con ModList.isLoaded("aeroclaims") para que sea dependencia opcional.
-    compileOnly files("../Aeronautics-Claims-master/build/libs/aeroclaims-0.9.2.jar")
+    // ── Integracion con Aeronautics Claims ──
+    // Jar OFICIAL de AeroClaims (sin modificar), solo en compilacion. La integracion vive
+    // 100% en ProtectorMod via mixins → AeroClaims corre tal cual desde CurseForge/Modrinth.
+    // Colocar aeroclaims-0.9.2.jar en libs/ (no versionado). Descarga: modrinth.com/mod/aeronautics-claims
+    compileOnly files("libs/aeroclaims-0.9.2.jar")
 
     // ── Guard de sublevels (Fase 4): detectar si una posición está dentro de un ship ──
     // Solo en compilación; en runtime lo aporta el mod 'sable' (guardado con isLoaded).

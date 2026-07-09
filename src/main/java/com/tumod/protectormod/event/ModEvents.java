@@ -69,12 +69,9 @@ public class ModEvents {
         // Carga la persistencia de bloques marcados (SavedData/NBT dentro del mundo).
         ProtectedBlockMarker.init(event.getServer().overworld());
 
-        // Integración opcional con AeroClaims: registrar los clanes como fuente de "party".
-        // Guardado por isLoaded para que AeroClaimsIntegration (que referencia clases de
-        // aeroclaims) solo se cargue si el mod está presente.
-        if (net.neoforged.fml.ModList.get().isLoaded("aeroclaims")) {
-            com.tumod.protectormod.integration.AeroClaimsIntegration.register(event.getServer());
-        }
+        // La integración con AeroClaims ya NO se registra aquí: vive en mixins (MixinAero*) que
+        // inyectan los clanes de ProtectorMod como party y los slots por config. AeroClaims corre
+        // sin modificar y sin depender de OPAC/FTB.
     }
 
     // ── Re-registrar cores al cargar el chunk (reemplaza BLOCK_ENTITY_LOAD de Fabric) ──

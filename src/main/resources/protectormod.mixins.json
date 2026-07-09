@@ -10,7 +10,10 @@
     "MixinFireBlock",
     "MixinItemStack",
     "MixinLevelBlockModification",
-    "MixinAssemblePacket"
+    "MixinAssemblePacket",
+    "MixinAeroPartyResolver",
+    "MixinAeroClaimProvider",
+    "MixinAeroTeamColor"
   ],
   "injectors": {
     "defaultRequire": 1
