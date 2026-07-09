@@ -1,0 +1,51 @@
+{
+  "variants": {
+    "facing=north,half=lower,level=1": { "model": "protectormod:block/protection_core_copper" },
+    "facing=north,half=lower,level=2": { "model": "protectormod:block/protection_core_iron" },
+    "facing=north,half=lower,level=3": { "model": "protectormod:block/protection_core_gold" },
+    "facing=north,half=lower,level=4": { "model": "protectormod:block/protection_core_diamond" },
+    "facing=north,half=lower,level=5": { "model": "protectormod:block/protection_core_netherite" },
+
+    "facing=east,half=lower,level=1":  { "model": "protectormod:block/protection_core_copper", "y": 90 },
+    "facing=east,half=lower,level=2":  { "model": "protectormod:block/protection_core_iron", "y": 90 },
+    "facing=east,half=lower,level=3":  { "model": "protectormod:block/protection_core_gold", "y": 90 },
+    "facing=east,half=lower,level=4":  { "model": "protectormod:block/protection_core_diamond", "y": 90 },
+    "facing=east,half=lower,level=5":  { "model": "protectormod:block/protection_core_netherite", "y": 90 },
+
+    "facing=south,half=lower,level=1": { "model": "protectormod:block/protection_core_copper", "y": 180 },
+    "facing=south,half=lower,level=2": { "model": "protectormod:block/protection_core_iron", "y": 180 },
+    "facing=south,half=lower,level=3": { "model": "protectormod:block/protection_core_gold", "y": 180 },
+    "facing=south,half=lower,level=4": { "model": "protectormod:block/protection_core_diamond", "y": 180 },
+    "facing=south,half=lower,level=5": { "model": "protectormod:block/protection_core_netherite", "y": 180 },
+
+    "facing=west,half=lower,level=1":  { "model": "protectormod:block/protection_core_copper", "y": 270 },
+    "facing=west,half=lower,level=2":  { "model": "protectormod:block/protection_core_iron", "y": 270 },
+    "facing=west,half=lower,level=3":  { "model": "protectormod:block/protection_core_gold", "y": 270 },
+    "facing=west,half=lower,level=4":  { "model": "protectormod:block/protection_core_diamond", "y": 270 },
+    "facing=west,half=lower,level=5":  { "model": "protectormod:block/protection_core_netherite", "y": 270 },
+
+    "facing=north,half=upper,level=1": { "model": "protectormod:block/empty" },
+    "facing=north,half=upper,level=2": { "model": "protectormod:block/empty" },
+    "facing=north,half=upper,level=3": { "model": "protectormod:block/empty" },
+    "facing=north,half=upper,level=4": { "model": "protectormod:block/empty" },
+    "facing=north,half=upper,level=5": { "model": "protectormod:block/empty" },
+
+    "facing=east,half=upper,level=1":  { "model": "protectormod:block/empty", "y": 90 },
+    "facing=east,half=upper,level=2":  { "model": "protectormod:block/empty", "y": 90 },
+    "facing=east,half=upper,level=3":  { "model": "protectormod:block/empty", "y": 90 },
+    "facing=east,half=upper,level=4":  { "model": "protectormod:block/empty", "y": 90 },
+    "facing=east,half=upper,level=5":  { "model": "protectormod:block/empty", "y": 90 },
+
+    "facing=south,half=upper,level=1": { "model": "protectormod:block/empty", "y": 180 },
+    "facing=south,half=upper,level=2": { "model": "protectormod:block/empty", "y": 180 },
+    "facing=south,half=upper,level=3": { "model": "protectormod:block/empty", "y": 180 },
+    "facing=south,half=upper,level=4": { "model": "protectormod:block/empty", "y": 180 },
+    "facing=south,half=upper,level=5": { "model": "protectormod:block/empty", "y": 180 },
+
+    "facing=west,half=upper,level=1":  { "model": "protectormod:block/empty", "y": 270 },
+    "facing=west,half=upper,level=2":  { "model": "protectormod:block/empty", "y": 270 },
+    "facing=west,half=upper,level=3":  { "model": "protectormod:block/empty", "y": 270 },
+    "facing=west,half=upper,level=4":  { "model": "protectormod:block/empty", "y": 270 },
+    "facing=west,half=upper,level=5":  { "model": "protectormod:block/empty", "y": 270 }
+  }
+}

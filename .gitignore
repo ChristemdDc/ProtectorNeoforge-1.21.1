@@ -1,0 +1,19 @@
+# Gradle / build
+.gradle/
+build/
+run/
+repo/
+
+# IDE
+*.iml
+.idea/
+.vscode/
+*.launch
+
+# Logs de build/servidor (locales, no versionar)
+build-log*.txt
+run-server-log.txt
+*.log
+
+# Sistema
+.DS_Store

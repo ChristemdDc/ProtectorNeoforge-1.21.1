@@ -1,0 +1,17 @@
+{
+  "core_upgrade": {
+    "subtitle": "sound.protectormod.core_upgrade",
+    "sounds": [
+      {
+        "name": "minecraft:random/levelup",
+        "pitch": 0.8,
+        "volume": 1.0
+      },
+      {
+        "name": "minecraft:block/anvil/use",
+        "pitch": 1.2,
+        "volume": 0.8
+      }
+    ]
+  }
+}

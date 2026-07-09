@@ -1,0 +1,44 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "${mod_authors}"
+description = '''${mod_description}'''
+
+[[mixins]]
+config = "protectormod.mixins.json"
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+# Integracion opcional: si Aeronautics Claims esta presente, registramos el
+# resolver de clanes como fuente de "party". Cargar despues de aeroclaims.
+[[dependencies.${mod_id}]]
+modId = "aeroclaims"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+# Create (FakePlayers). Opcional.
+[[dependencies.${mod_id}]]
+modId = "create"
+type = "optional"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "BOTH"

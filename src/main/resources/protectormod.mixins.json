@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "package": "com.tumod.protectormod.mixin",
+  "plugin": "com.tumod.protectormod.mixin.ProtectorMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8.5",
+  "mixins": [
+    "MixinBucketItem",
+    "MixinDispenserBlock",
+    "MixinFireBlock",
+    "MixinItemStack",
+    "MixinLevelBlockModification",
+    "MixinAssemblePacket"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

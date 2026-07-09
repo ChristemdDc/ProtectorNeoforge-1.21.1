@@ -1,0 +1,115 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.141'
+}
+
+version = mod_version
+group = mod_group_id
+
+repositories {
+    mavenLocal()
+    mavenCentral() // sqlite-jdbc
+    maven {
+        name = "RyanHCode Maven" // Sable / Create Aeronautics API (para el guard de sublevels)
+        url = "https://maven.ryanhcode.dev/releases"
+    }
+    maven {
+        name = "BlameJared" // OPAC / FTB
+        url = "https://maven.blamejared.com/"
+    }
+    maven {
+        name = "CurseForge"
+        url = "https://cursemaven.com"
+    }
+    maven { url = "https://maven.createmod.net" }
+}
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    // Access Transformers are auto-detected at src/main/resources/META-INF/accesstransformer.cfg
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    // ── Integracion con Aeronautics Claims (Fases 2-3) ──
+    // Solo se necesita en compilacion (la API la provee aeroclaims en runtime).
+    // Guardado con ModList.isLoaded("aeroclaims") para que sea dependencia opcional.
+    compileOnly files("../Aeronautics-Claims-master/build/libs/aeroclaims-0.9.2.jar")
+
+    // ── Guard de sublevels (Fase 4): detectar si una posición está dentro de un ship ──
+    // Solo en compilación; en runtime lo aporta el mod 'sable' (guardado con isLoaded).
+    compileOnly "dev.ryanhcode.sable:sable-common-1.21.1:2.0.0"
+
+    // ── Anti-robo de naves (F9): cancelar (des)ensamblado del Physics Assembler ──
+    // AssemblePacket lo aporta 'simulated' (Create Aeronautics) y ServerPacketContext 'veil'.
+    // Solo en compilación; el MixinAssemblePacket se activa condicionalmente (ProtectorMixinPlugin).
+    compileOnly("dev.simulated_team.simulated:simulated-neoforge-1.21.1:1.2.1") { transitive = false }
+    compileOnly("foundry.veil:veil-neoforge-1.21.1:1.0.0.82") { transitive = false }
+
+    // ── Create (manejo de FakePlayers en algunos mixins) ──
+    // compileOnly "curse.maven:create-328085:7408951"
+}
+
+// Expande propiedades en la plantilla de metadatos del mod.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+        minecraft_version      : minecraft_version,
+        minecraft_version_range: minecraft_version_range,
+        neo_version            : neo_version,
+        neo_version_range      : neo_version_range,
+        loader_version_range   : loader_version_range,
+        mod_id                 : mod_id,
+        mod_name               : mod_name,
+        mod_license            : mod_license,
+        mod_version            : mod_version,
+        mod_authors            : mod_authors,
+        mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

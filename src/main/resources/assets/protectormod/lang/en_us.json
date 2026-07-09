@@ -1,0 +1,17 @@
+{
+  "block.protectormod.protection_core": "Núcleo de Protección",
+  "block.protectormod.admin_protector": "Protector de Administrador",
+  "item.protectormod.protection_upgrade": "Mejora de Protección",
+  "itemGroup.protector_tab": "Protector Mod",
+
+  "gui.protectormod.protection_core.level": "Nivel: %s",
+  "gui.protectormod.protection_core.upgrade": "Mejorar",
+  "gui.protectormod.protection_core.show_area": "Ver Área",
+
+  "sound.protectormod.core_upgrade": "El Núcleo ha subido de nivel",
+
+  "item.protectormod.protection_core.desc": "§7Un artefacto antiguo capaz de sellar tierras.",
+  "item.protectormod.admin_protector.desc": "§dAutoridad absoluta. Protección divina.",
+  "item.protectormod.protection_upgrade.desc": "§bEnergía concentrada para expandir el Núcleo."
+
+}

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "facing=north,half=lower": { "model": "protectormod:block/admin_protector" },
+    "facing=south,half=lower": { "model": "protectormod:block/admin_protector", "y": 180 },
+    "facing=east,half=lower":  { "model": "protectormod:block/admin_protector", "y": 90 },
+    "facing=west,half=lower":  { "model": "protectormod:block/admin_protector", "y": 270 },
+
+    "facing=north,half=upper": { "model": "protectormod:block/empty" },
+    "facing=south,half=upper": { "model": "protectormod:block/empty", "y": 180 },
+    "facing=east,half=upper":  { "model": "protectormod:block/empty", "y": 90 },
+    "facing=west,half=upper":  { "model": "protectormod:block/empty", "y": 270 }
+  }
+}
