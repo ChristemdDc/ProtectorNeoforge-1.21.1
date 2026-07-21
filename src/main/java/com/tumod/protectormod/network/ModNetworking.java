@@ -249,6 +249,18 @@ public class ModNetworking {
             if (serverLevel.getBlockEntity(pos) instanceof ProtectionCoreBlockEntity core) {
                 ClanSavedData data = ClanSavedData.get(serverLevel);
 
+                // SEGURIDAD: solo el DUEÑO de esta protección (u OP) puede fundar un clan en ella, y
+                // solo si NO pertenece ya a un clan. Evita que un miembro/invitado secuestre la
+                // protección creando un clan (que antes reasignaba dueño + clan del núcleo).
+                if (!player.getUUID().equals(core.getRawOwnerUUID()) && !player.hasPermissions(2)) {
+                    player.displayClientMessage(Component.literal("§c[!] Solo el dueño de esta protección puede fundar un clan aquí."), true);
+                    return;
+                }
+                if (core.getClanId() != null) {
+                    player.displayClientMessage(Component.literal("§c[!] Esta protección ya pertenece a un clan."), true);
+                    return;
+                }
+
                 if (clanName.length() < 3 || clanName.length() > 16) {
                     player.displayClientMessage(Component.literal("§c[!] El nombre debe tener entre 3 y 16 caracteres."), true);
                     return;
@@ -273,6 +285,13 @@ public class ModNetworking {
                     // El núcleo donde se funda el clan pasa a ser una protección del clan.
                     if (newClan != null) {
                         newClan.protectionsUsed++;
+                        // Migrar los invitados YA existentes del núcleo al clan como miembros. Sus
+                        // permisos por-núcleo (permissionsMap) se conservan → siguen con el mismo acceso.
+                        for (java.util.UUID invitee : core.getTrustedUUIDs()) {
+                            if (invitee.equals(player.getUUID())) continue; // el líder ya está
+                            if (newClan.members.contains(invitee)) continue;
+                            data.addMemberToClan(newClan, invitee, core.getTrustedName(invitee));
+                        }
                         data.setDirty();
                     }
 

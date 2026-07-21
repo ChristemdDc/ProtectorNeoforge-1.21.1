@@ -357,6 +357,11 @@ public class ProtectionCoreBlockEntity extends BlockEntity implements MenuProvid
         return new java.util.HashSet<>(permissionsMap.keySet());
     }
 
+    /** Nombre cacheado de un invitado (para migrar invitados a miembros de clan). */
+    public String getTrustedName(UUID uuid) {
+        return nameCache.getOrDefault(uuid, "?");
+    }
+
     public List<String> getTrustedNames() {
         return new ArrayList<>(nameCache.values());
     }
