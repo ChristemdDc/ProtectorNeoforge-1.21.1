@@ -6,7 +6,7 @@ Reescritura para **NeoForge 1.21.1 / Java 21** del mod original de Fabric 1.20.1
 
 - **Minecraft:** 1.21.1
 - **Loader:** NeoForge 21.1.220+
-- **Versión:** 2.0.0
+- **Versión:** 2.1.0
 - **Licencia:** MIT
 
 ---
