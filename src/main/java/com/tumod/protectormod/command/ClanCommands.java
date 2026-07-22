@@ -85,6 +85,14 @@ public class ClanCommands {
                                                 })
                                         )
                                 )
+                                .then(Commands.literal("panel")
+                                        .executes(context -> {
+                                            ServerPlayer player = context.getSource().getPlayerOrException();
+                                            // Envía el snapshot; el handler S2C abre la GUI en el cliente.
+                                            com.tumod.protectormod.network.ModNetworking.sendAdminPanelData(player);
+                                            return 1;
+                                        })
+                                )
                 )
                 .then(Commands.literal("help").executes(context -> showProtectorHelp(context.getSource())))
                 .then(Commands.literal("visualizer")
@@ -349,6 +357,7 @@ public class ClanCommands {
             source.sendSuccess(() -> Component.literal("§b/protector visualizer §7- Bordes de partículas."), false);
             source.sendSuccess(() -> Component.literal("§b/protector admin trust/untrust §7- Permitir / Remover de un admin core"), false);
             source.sendSuccess(() -> Component.literal("§b/protector list §7- Lista todos los núcleos."), false);
+            source.sendSuccess(() -> Component.literal("§b/protector admin panel §7- GUI: todas las protecciones y clanes (TP, eliminar, expulsar, disolver)."), false);
             source.sendSuccess(() -> Component.literal("§b/protector limit <n> §7- Límite global de cores."), false);
         }
 

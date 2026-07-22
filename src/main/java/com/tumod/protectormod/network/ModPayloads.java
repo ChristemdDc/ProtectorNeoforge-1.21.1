@@ -221,4 +221,91 @@ public final class ModPayloads {
                                 ClanRef.LIST_CODEC.decode(buf)));
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
+
+    // ─────────────────────────── Panel de Administración ───────────────────────────
+
+    /** Una protección para la lista del panel admin. level derivado del radio si el chunk está descargado. */
+    public record AdminProtEntry(BlockPos pos, String dimension, String ownerName, String clanName,
+                                 int level, int radius, boolean isAdmin) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, AdminProtEntry> STREAM_CODEC =
+                StreamCodec.of(
+                        (buf, p) -> {
+                            buf.writeBlockPos(p.pos());
+                            buf.writeUtf(p.dimension());
+                            buf.writeUtf(p.ownerName());
+                            buf.writeUtf(p.clanName());
+                            buf.writeVarInt(p.level());
+                            buf.writeVarInt(p.radius());
+                            buf.writeBoolean(p.isAdmin());
+                        },
+                        buf -> new AdminProtEntry(buf.readBlockPos(), buf.readUtf(), buf.readUtf(), buf.readUtf(),
+                                buf.readVarInt(), buf.readVarInt(), buf.readBoolean()));
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<AdminProtEntry>> LIST_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
+    }
+
+    /** Un miembro de clan para el panel admin. */
+    public record MemberRef(UUID id, String name, boolean isLeader) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, MemberRef> STREAM_CODEC =
+                StreamCodec.composite(
+                        UUIDUtil.STREAM_CODEC, MemberRef::id,
+                        ByteBufCodecs.STRING_UTF8, MemberRef::name,
+                        ByteBufCodecs.BOOL, MemberRef::isLeader,
+                        MemberRef::new);
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<MemberRef>> LIST_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
+    }
+
+    /** Un clan para la lista del panel admin. */
+    public record AdminClanEntry(UUID clanId, String name, String leaderName, int protectionsUsed,
+                                 int maxProtections, int maxMembers, int alliesCount, List<MemberRef> members) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, AdminClanEntry> STREAM_CODEC =
+                StreamCodec.of(
+                        (buf, c) -> {
+                            UUIDUtil.STREAM_CODEC.encode(buf, c.clanId());
+                            buf.writeUtf(c.name());
+                            buf.writeUtf(c.leaderName());
+                            buf.writeVarInt(c.protectionsUsed());
+                            buf.writeVarInt(c.maxProtections());
+                            buf.writeVarInt(c.maxMembers());
+                            buf.writeVarInt(c.alliesCount());
+                            MemberRef.LIST_CODEC.encode(buf, c.members());
+                        },
+                        buf -> new AdminClanEntry(
+                                UUIDUtil.STREAM_CODEC.decode(buf), buf.readUtf(), buf.readUtf(),
+                                buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                                MemberRef.LIST_CODEC.decode(buf)));
+        public static final StreamCodec<RegistryFriendlyByteBuf, List<AdminClanEntry>> LIST_CODEC =
+                STREAM_CODEC.apply(ByteBufCodecs.list());
+    }
+
+    /** S2C: snapshot completo del panel admin (todas las protecciones + todos los clanes). */
+    public record AdminPanelDataPayload(List<AdminProtEntry> protections, List<AdminClanEntry> clans) implements CustomPacketPayload {
+        public static final Type<AdminPanelDataPayload> TYPE = makeType("admin_panel_data");
+        public static final StreamCodec<RegistryFriendlyByteBuf, AdminPanelDataPayload> STREAM_CODEC =
+                StreamCodec.composite(
+                        AdminProtEntry.LIST_CODEC, AdminPanelDataPayload::protections,
+                        AdminClanEntry.LIST_CODEC, AdminPanelDataPayload::clans,
+                        AdminPanelDataPayload::new);
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
+    /**
+     * C2S: una acción del panel admin. Payload único con discriminador para no crear 7 tipos.
+     * action ∈ {refresh, teleport, delete_protection, kick, disband, set_max_protections, set_max_members}.
+     * Los campos no usados por una acción van con valores centinela (pos=ORIGIN, uuid=0, dimension="").
+     */
+    public record AdminActionPayload(String action, BlockPos pos, String dimension, UUID clanId, UUID targetPlayer, int value) implements CustomPacketPayload {
+        public static final Type<AdminActionPayload> TYPE = makeType("admin_action");
+        public static final StreamCodec<RegistryFriendlyByteBuf, AdminActionPayload> STREAM_CODEC =
+                StreamCodec.composite(
+                        ByteBufCodecs.STRING_UTF8, AdminActionPayload::action,
+                        BlockPos.STREAM_CODEC, AdminActionPayload::pos,
+                        ByteBufCodecs.STRING_UTF8, AdminActionPayload::dimension,
+                        UUIDUtil.STREAM_CODEC, AdminActionPayload::clanId,
+                        UUIDUtil.STREAM_CODEC, AdminActionPayload::targetPlayer,
+                        ByteBufCodecs.VAR_INT, AdminActionPayload::value,
+                        AdminActionPayload::new);
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
 }

@@ -6,9 +6,13 @@ import com.tumod.protectormod.util.ClanSavedData;
 import com.tumod.protectormod.util.InviteManager;
 import com.tumod.protectormod.util.ProtectionDataManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -48,6 +52,7 @@ public class ModNetworking {
         registrar.playToServer(ModPayloads.OpenAlliancePayload.TYPE, ModPayloads.OpenAlliancePayload.STREAM_CODEC, ModNetworking::handleOpenAlliance);
         registrar.playToServer(ModPayloads.AllianceActionPayload.TYPE, ModPayloads.AllianceActionPayload.STREAM_CODEC, ModNetworking::handleAllianceAction);
         registrar.playToServer(ModPayloads.AllyPermPayload.TYPE, ModPayloads.AllyPermPayload.STREAM_CODEC, ModNetworking::handleAllyPerm);
+        registrar.playToServer(ModPayloads.AdminActionPayload.TYPE, ModPayloads.AdminActionPayload.STREAM_CODEC, ModNetworking::handleAdminAction);
 
         // ── S2C (se difieren a la clase cliente vía lambda para no cargarla en el servidor) ──
         registrar.playToClient(ModPayloads.ShowAreaClientPayload.TYPE, ModPayloads.ShowAreaClientPayload.STREAM_CODEC,
@@ -56,6 +61,8 @@ public class ModNetworking {
                 (payload, ctx) -> ctx.enqueueWork(() -> ClientPayloadHandlers.handleSyncProtection(payload)));
         registrar.playToClient(ModPayloads.AllianceDataPayload.TYPE, ModPayloads.AllianceDataPayload.STREAM_CODEC,
                 (payload, ctx) -> ctx.enqueueWork(() -> ClientPayloadHandlers.handleAllianceData(payload)));
+        registrar.playToClient(ModPayloads.AdminPanelDataPayload.TYPE, ModPayloads.AdminPanelDataPayload.STREAM_CODEC,
+                (payload, ctx) -> ctx.enqueueWork(() -> ClientPayloadHandlers.handleAdminPanelData(payload)));
     }
 
     // ─────────────────────────── Handlers C2S ───────────────────────────
@@ -529,5 +536,168 @@ public class ModNetworking {
 
     public static void sendAllyPerm(BlockPos pos, java.util.UUID allyClanId, String type, boolean value) {
         PacketDistributor.sendToServer(new ModPayloads.AllyPermPayload(pos, allyClanId, type, value));
+    }
+
+    // ─────────────────────────── Panel de Administración ───────────────────────────
+
+    /** C2S: el cliente pide una acción del panel admin (o su apertura vía "refresh"). */
+    public static void sendAdminAction(String action, BlockPos pos, String dimension,
+                                       java.util.UUID clanId, java.util.UUID targetPlayer, int value) {
+        PacketDistributor.sendToServer(new ModPayloads.AdminActionPayload(action, pos, dimension, clanId, targetPlayer, value));
+    }
+
+    private static void handleAdminAction(ModPayloads.AdminActionPayload payload, IPayloadContext ctx) {
+        ServerPlayer player = (ServerPlayer) ctx.player();
+        ctx.enqueueWork(() -> {
+            // NUNCA se fía del cliente: se revalida el permiso admin en el servidor.
+            if (!player.hasPermissions(4)) {
+                player.displayClientMessage(Component.literal("§c[!] No tienes permiso de administrador."), true);
+                return;
+            }
+            MinecraftServer server = player.getServer();
+            if (server == null) return;
+            ClanSavedData data = ClanSavedData.get(player.serverLevel());
+
+            switch (payload.action()) {
+                case "refresh" -> sendAdminPanelData(player);
+
+                case "teleport" -> {
+                    ServerLevel target = levelFromId(server, payload.dimension());
+                    if (target != null) {
+                        BlockPos p = payload.pos();
+                        player.teleportTo(target, p.getX() + 0.5, p.getY() + 1.0, p.getZ() + 0.5,
+                                player.getYRot(), player.getXRot());
+                        player.displayClientMessage(Component.literal("§a[Admin] Teletransportado a la protección."), true);
+                    }
+                    // Sin reenviar snapshot: el teleport cierra la GUI en el cliente.
+                }
+
+                case "delete_protection" -> {
+                    ServerLevel target = levelFromId(server, payload.dimension());
+                    if (target != null) {
+                        BlockPos p = payload.pos();
+                        target.destroyBlock(p, false); // onRemove limpia el manager, el pool del clan y la mitad superior
+                        ProtectionDataManager mgr = ProtectionDataManager.get(target);
+                        mgr.removeCore(p);             // por si era un "núcleo fantasma" sin bloque real
+                        mgr.syncToAll(target);
+                        player.displayClientMessage(Component.literal("§a[Admin] Protección eliminada."), true);
+                    }
+                    sendAdminPanelData(player);
+                }
+
+                case "kick" -> {
+                    ClanSavedData.ClanInstance clan = data.getClanById(payload.clanId());
+                    if (clan != null) {
+                        java.util.UUID t = payload.targetPlayer();
+                        if (clan.leaderUUID.equals(t)) {
+                            player.displayClientMessage(Component.literal("§c[!] No puedes expulsar al líder. Disuelve el clan."), true);
+                        } else if (data.kickMember(clan, t)) {
+                            player.displayClientMessage(Component.literal("§a[Admin] Miembro expulsado del clan §b" + clan.name + "§a."), true);
+                        }
+                    }
+                    sendAdminPanelData(player);
+                }
+
+                case "disband" -> {
+                    ClanSavedData.ClanInstance clan = data.getClanById(payload.clanId());
+                    if (clan != null) {
+                        String name = clan.name;
+                        data.deleteClan(clan.leaderUUID);
+                        player.displayClientMessage(Component.literal("§e[Admin] Clan §b" + name + "§e disuelto."), true);
+                    }
+                    sendAdminPanelData(player);
+                }
+
+                case "set_max_protections" -> {
+                    ClanSavedData.ClanInstance clan = data.getClanById(payload.clanId());
+                    if (clan != null) { clan.maxProtections = Math.max(0, payload.value()); data.setDirty(); }
+                    sendAdminPanelData(player);
+                }
+
+                case "set_max_members" -> {
+                    ClanSavedData.ClanInstance clan = data.getClanById(payload.clanId());
+                    if (clan != null) { clan.maxMembers = Math.max(1, payload.value()); data.setDirty(); }
+                    sendAdminPanelData(player);
+                }
+            }
+        });
+    }
+
+    /** Resuelve un ServerLevel por su id de dimensión (p. ej. "minecraft:overworld"). */
+    private static ServerLevel levelFromId(MinecraftServer server, String id) {
+        ResourceLocation loc = ResourceLocation.tryParse(id);
+        if (loc == null) return null;
+        return server.getLevel(ResourceKey.create(Registries.DIMENSION, loc));
+    }
+
+    /** Resuelve el nombre de un jugador aunque esté offline (roster de clan → caché de perfiles → UUID corto). */
+    private static String resolveName(MinecraftServer server, ClanSavedData clanData, java.util.UUID uuid) {
+        ClanSavedData.ClanInstance c = clanData.getClanByMember(uuid);
+        if (c != null) {
+            ClanSavedData.ClanMember cm = c.memberInfo.get(uuid);
+            if (cm != null && cm.name != null && !cm.name.isEmpty() && !cm.name.equals("?")) return cm.name;
+        }
+        if (server.getProfileCache() != null) {
+            var opt = server.getProfileCache().get(uuid);
+            if (opt.isPresent()) return opt.get().getName();
+        }
+        return uuid.toString().substring(0, 8);
+    }
+
+    private static int radiusToLevel(int r) {
+        return switch (r) {
+            case 8 -> 1; case 16 -> 2; case 32 -> 3; case 64 -> 4; case 128 -> 5;
+            default -> 0;
+        };
+    }
+
+    /**
+     * Reúne TODAS las protecciones (de todas las dimensiones) y TODOS los clanes, y envía el snapshot
+     * al jugador. También es lo que abre la GUI en el cliente (el handler S2C hace setScreen si no está
+     * abierta). Enriquece cada protección con el BlockEntity SOLO si su chunk está cargado; si no, deriva
+     * nivel del radio, dueño de la caché de perfiles y clan del índice — así funciona sin cargar chunks.
+     */
+    public static void sendAdminPanelData(ServerPlayer player) {
+        MinecraftServer server = player.getServer();
+        if (server == null) return;
+        ClanSavedData clanData = ClanSavedData.get(player.serverLevel());
+
+        List<ModPayloads.AdminProtEntry> prots = new ArrayList<>();
+        for (ServerLevel lvl : server.getAllLevels()) {
+            ProtectionDataManager mgr = ProtectionDataManager.get(lvl);
+            String dim = lvl.dimension().location().toString();
+            for (Map.Entry<BlockPos, ProtectionDataManager.CoreEntry> e : mgr.getAllCores().entrySet()) {
+                BlockPos pos = e.getKey();
+                ProtectionDataManager.CoreEntry entry = e.getValue();
+                int radius = entry.radius();
+                int level = radiusToLevel(radius);
+                boolean isAdmin = false;
+                String ownerName = resolveName(server, clanData, entry.owner());
+                ClanSavedData.ClanInstance ownerClan = clanData.getClanByMember(entry.owner());
+                String clanName = ownerClan != null ? ownerClan.name : "";
+
+                if (lvl.isLoaded(pos) && lvl.getBlockEntity(pos) instanceof ProtectionCoreBlockEntity core) {
+                    level = core.getCoreLevel();
+                    isAdmin = core.isAdmin();
+                    if (core.getClanName() != null && !core.getClanName().isEmpty()) clanName = core.getClanName();
+                }
+                prots.add(new ModPayloads.AdminProtEntry(pos, dim, ownerName, clanName, level, radius, isAdmin));
+            }
+        }
+
+        List<ModPayloads.AdminClanEntry> clans = new ArrayList<>();
+        for (ClanSavedData.ClanInstance c : clanData.getAllClans()) {
+            List<ModPayloads.MemberRef> members = new ArrayList<>();
+            for (java.util.UUID m : c.members) {
+                ClanSavedData.ClanMember cm = c.memberInfo.get(m);
+                String name = (cm != null && cm.name != null && !cm.name.isEmpty() && !cm.name.equals("?"))
+                        ? cm.name : resolveName(server, clanData, m);
+                members.add(new ModPayloads.MemberRef(m, name, m.equals(c.leaderUUID)));
+            }
+            clans.add(new ModPayloads.AdminClanEntry(c.clanId, c.name, c.leaderName,
+                    c.protectionsUsed, c.maxProtections, c.maxMembers, c.allies.size(), members));
+        }
+
+        PacketDistributor.sendToPlayer(player, new ModPayloads.AdminPanelDataPayload(prots, clans));
     }
 }
