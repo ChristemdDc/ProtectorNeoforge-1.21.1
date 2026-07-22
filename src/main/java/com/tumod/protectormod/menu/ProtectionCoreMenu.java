@@ -109,7 +109,8 @@ public class ProtectionCoreMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return stillValid(this.access, player, ModBlocks.PROTECTION_CORE.get())
-                || stillValid(this.access, player, ModBlocks.ADMIN_PROTECTOR.get());
+                || stillValid(this.access, player, ModBlocks.ADMIN_PROTECTOR.get())
+                || stillValid(this.access, player, ModBlocks.MECHANICAL_PROTECTOR.get());
     }
 
     public ProtectionCoreBlockEntity getBlockEntity() {

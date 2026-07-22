@@ -1,0 +1,4 @@
+{
+  "_comment": "Placeholder: el icono real lo dibuja AnimaSlime (AnimaSlimeItemModels.bindDeferred). Este JSON existe solo para que Minecraft no registre un modelo ausente en el log.",
+  "parent": "protectormod:block/empty"
+}

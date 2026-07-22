@@ -1,0 +1,6 @@
+{
+  "_comment": "La geometria la pinta el motor de AnimaSlime (BER enlazado a MECHANICAL_PROTECTOR_BE), no este JSON. Un multipart sin condiciones aplica a todos los estados (level 1..5 x facing x half); la rotacion la hace el motor por FACING. El modelo vacio solo aporta la textura de particulas de rotura.",
+  "multipart": [
+    { "apply": { "model": "protectormod:block/empty" } }
+  ]
+}

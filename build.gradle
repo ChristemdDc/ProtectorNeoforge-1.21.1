@@ -23,6 +23,16 @@ repositories {
         url = "https://cursemaven.com"
     }
     maven { url = "https://maven.createmod.net" }
+    // ── AnimaSlime (motor de animacion) ──
+    // Repo Maven de ARCHIVOS que publica el propio proyecto AnimaSlime con `gradlew publish`.
+    // Se consume como artefacto (no como composite build) A PROPOSITO: AnimaSlime usa NeoGradle
+    // 7.x y ProtectorMod usa ModDevGradle 2.x; cruzarlos en un mismo build es el escenario fragil.
+    // Al ir por Maven, cada proyecto conserva su toolchain y solo viaja el jar.
+    // Asume que AnimaSlime esta clonado como hermano de este repo (../AnimaSlime).
+    maven {
+        name = "AnimaSlime (local)"
+        url = uri("${rootDir}/../AnimaSlime/repo")
+    }
 }
 
 base {
@@ -65,6 +75,20 @@ neoForge {
 }
 
 dependencies {
+    // ── AnimaSlime: motor de animacion (bloques/items .animaslime) ──
+    // Dependencia OBLIGATORIA y EMBEBIDA (JarJar): el usuario final instala solo ProtectorMod y
+    // AnimaSlime viaja dentro, en META-INF/jarjar/.
+    // OJO: docs/02 de AnimaSlime describe el patron de NeoGradle (jar '-slim' + tarea jarJar
+    // con clasificador vacio). En ModDevGradle NO aplica: la tarea :jar ya depende de :jarJar y
+    // embebe su salida, asi que el unico jar producido (sin clasificador) es el distribuible.
+    implementation "com.cretania.animaslime:animaslime:${animaslime_version}"
+    jarJar("com.cretania.animaslime:animaslime") {
+        version {
+            strictly animaslime_version_range
+            prefer animaslime_version
+        }
+    }
+
     // ── Integracion con Aeronautics Claims ──
     // Jar OFICIAL de AeroClaims (sin modificar), solo en compilacion. La integracion vive
     // 100% en ProtectorMod via mixins → AeroClaims corre tal cual desde CurseForge/Modrinth.
@@ -98,7 +122,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
         mod_license            : mod_license,
         mod_version            : mod_version,
         mod_authors            : mod_authors,
-        mod_description        : mod_description
+        mod_description        : mod_description,
+        animaslime_version_range: animaslime_version_range
     ]
     inputs.properties replaceProperties
     expand replaceProperties

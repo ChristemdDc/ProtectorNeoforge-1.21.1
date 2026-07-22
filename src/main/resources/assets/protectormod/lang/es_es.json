@@ -1,6 +1,7 @@
 {
   "block.protectormod.protection_core": "Núcleo de Protección",
   "block.protectormod.admin_protector": "Protector de Administrador",
+  "block.protectormod.mechanical_protector": "Protector Mecánico",
   "item.protectormod.protection_upgrade": "Mejora de Protección",
   "itemGroup.protector_tab": "Protector Mod",
 

@@ -31,6 +31,13 @@ public class ModItems {
             new Item.Properties().stacksTo(16).rarity(Rarity.RARE)
     );
 
+    /** Item del Protector Mecanico (proteccion extra con render animado). Ver ModBlocks.MECHANICAL_PROTECTOR. */
+    public static final DeferredItem<BlockItem> MECHANICAL_PROTECTOR_ITEM = ITEMS.registerItem(
+            "mechanical_protector",
+            props -> new BlockItem(ModBlocks.MECHANICAL_PROTECTOR.get(), props),
+            new Item.Properties().stacksTo(1).fireResistant()
+    );
+
     public static void register(IEventBus modBus) {
         ITEMS.register(modBus);
     }

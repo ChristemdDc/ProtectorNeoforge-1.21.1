@@ -22,6 +22,17 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("admin_protector_be",
                     () -> BlockEntityType.Builder.of(AdminProtectorBlockEntity::new, ModBlocks.ADMIN_PROTECTOR.get()).build(null));
 
+    // Protector Mecanico: reutiliza la MISMA clase ProtectionCoreBlockEntity (via su constructor de
+    // tipo), pero con un BlockEntityType propio. Asi el render de AnimaSlime se enlaza solo a este
+    // tipo, sin tocar el nucleo clasico, y la logica de proteccion (que opera por
+    // instanceof ProtectionCoreBlockEntity) aplica igual.
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ProtectionCoreBlockEntity>> MECHANICAL_PROTECTOR_BE =
+            BLOCK_ENTITIES.register("mechanical_protector_be",
+                    () -> BlockEntityType.Builder.<ProtectionCoreBlockEntity>of(
+                            (pos, state) -> new ProtectionCoreBlockEntity(
+                                    ModBlockEntities.MECHANICAL_PROTECTOR_BE.get(), pos, state),
+                            ModBlocks.MECHANICAL_PROTECTOR.get()).build(null));
+
     public static void register(IEventBus modBus) {
         BLOCK_ENTITIES.register(modBus);
     }

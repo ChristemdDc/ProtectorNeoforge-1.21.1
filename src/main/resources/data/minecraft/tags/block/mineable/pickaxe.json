@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "protectormod:protection_core"
+    "protectormod:protection_core",
+    "protectormod:mechanical_protector"
   ]
 }

@@ -8,10 +8,12 @@ import com.tumod.protectormod.registry.ModMenus;
 import com.tumod.protectormod.registry.ModSounds;
 import com.tumod.protectormod.network.ModNetworking;
 import com.tumod.protectormod.config.ProtectorConfig;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,13 @@ public class ProtectorMod {
         ModNetworking.register(modBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ProtectorConfig.SPEC);
+
+        // AnimaSlime: enlaces de modelo que DEBEN hacerse en el constructor (el del item; el del
+        // bloque va en FMLClientSetupEvent). El guarda por Dist evita cargar clases de cliente en un
+        // servidor dedicado: la clase solo se resuelve al entrar en la rama.
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            com.tumod.protectormod.client.ProtectorAnimaSlimeModels.bindEarly();
+        }
 
         //   modContainer.registerConfig(ModConfig.Type.COMMON, ProtectorConfig.SPEC);
 

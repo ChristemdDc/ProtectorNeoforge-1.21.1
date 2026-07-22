@@ -26,6 +26,18 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
+# AnimaSlime: motor de animacion para los modelos de las protecciones.
+# OBLIGATORIA, pero viaja EMBEBIDA (JarJar) dentro de este jar, asi que el usuario final
+# no tiene que instalarla aparte. Cargar ANTES que ProtectorMod: el enlace de modelos
+# (AnimaSlimeBlockRenderers.bind) ocurre en el constructor de ProtectorMod y necesita que
+# las clases del motor ya esten disponibles.
+[[dependencies.${mod_id}]]
+modId = "animaslime"
+type = "required"
+versionRange = "${animaslime_version_range}"
+ordering = "AFTER"
+side = "BOTH"
+
 # Integracion opcional: si Aeronautics Claims esta presente, registramos el
 # resolver de clanes como fuente de "party". Cargar despues de aeroclaims.
 [[dependencies.${mod_id}]]

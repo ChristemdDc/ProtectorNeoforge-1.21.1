@@ -21,6 +21,7 @@ public class ModCreativeTabs {
                     .displayItems((params, output) -> {
                         output.accept(ModItems.ADMIN_PROTECTOR_ITEM.get());
                         output.accept(ModItems.PROTECTION_CORE_ITEM.get());
+                        output.accept(ModItems.MECHANICAL_PROTECTOR_ITEM.get());
                         output.accept(ModItems.PROTECTION_UPGRADE.get());
                     })
                     .build());
