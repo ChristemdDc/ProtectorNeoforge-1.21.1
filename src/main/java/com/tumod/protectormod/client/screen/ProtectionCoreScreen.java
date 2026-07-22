@@ -31,6 +31,7 @@ public class ProtectionCoreScreen extends AbstractContainerScreen<ProtectionCore
     private int suggestionIndex = -1;
     private String lastCheckedPlayer = "";
     private Button clanBtn;
+    private Button aliadosBtn;
 
     public ProtectionCoreScreen(ProtectionCoreMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -68,16 +69,21 @@ public class ProtectionCoreScreen extends AbstractContainerScreen<ProtectionCore
         }));
 
         this.clanBtn = this.addRenderableWidget(new CustomTexturedButton(x + 10, y + 78, 50, 20, Component.literal("Clan"), b -> {
-            // Fase 7: el líder puede crear el clan solo (sin requerir 3 miembros).
-            this.minecraft.setScreen(new CreateClanScreen(this, this.menu.getCore()));
+            // Solo el dueño (núcleo sin clan) o el líder (núcleo de clan) puede gestionar el clan.
+            if (canManageClan(this.menu.getCore())) {
+                this.minecraft.setScreen(new CreateClanScreen(this, this.menu.getCore()));
+            }
         }));
 
         this.addRenderableWidget(new CustomTexturedButton(x + 63, y + 78, 50, 20, Component.literal("Ajustes"), b -> {
             this.minecraft.setScreen(new FlagsScreen(this, this.menu.getCore()));
         }));
 
-        this.addRenderableWidget(new CustomTexturedButton(x + 116, y + 78, 50, 20, Component.literal("Aliados"), b -> {
-            this.minecraft.setScreen(new AllianceScreen(this, this.menu.getCore().getBlockPos()));
+        this.aliadosBtn = this.addRenderableWidget(new CustomTexturedButton(x + 116, y + 78, 50, 20, Component.literal("Aliados"), b -> {
+            // Solo el líder del clan gestiona alianzas.
+            if (canManageAlliances(this.menu.getCore())) {
+                this.minecraft.setScreen(new AllianceScreen(this, this.menu.getCore().getBlockPos()));
+            }
         }));
 
         this.upgradeButton = this.addRenderableWidget(new CustomTexturedButton(x + 64, y + 105, 50, 20,
@@ -176,6 +182,24 @@ public class ProtectionCoreScreen extends AbstractContainerScreen<ProtectionCore
                 && this.minecraft.player.getUUID().equals(core.getClanLeaderUuid());
     }
 
+    /**
+     * ¿Puede el que mira gestionar el CLAN de este núcleo? Núcleo de clan → solo el líder;
+     * núcleo sin clan → solo el dueño; OP siempre. Evita que un miembro/invitado funde un clan
+     * en la protección ajena (secuestro). El servidor valida lo mismo.
+     */
+    private boolean canManageClan(ProtectionCoreBlockEntity core) {
+        if (this.minecraft == null || this.minecraft.player == null) return false;
+        var me = this.minecraft.player;
+        if (me.hasPermissions(2)) return true;
+        if (core.getClanLeaderUuid() != null) return me.getUUID().equals(core.getClanLeaderUuid());
+        return me.getUUID().equals(core.getRawOwnerUUID());
+    }
+
+    /** Alianzas: solo el líder de un núcleo que YA pertenece a un clan (u OP). */
+    private boolean canManageAlliances(ProtectionCoreBlockEntity core) {
+        return core.getClanLeaderUuid() != null && canManageClan(core);
+    }
+
     private ProtectionCoreBlockEntity.ClanMemberView findClanMember(ProtectionCoreBlockEntity core, String name) {
         for (ProtectionCoreBlockEntity.ClanMemberView m : core.getClanMembers()) {
             if (m.name().equalsIgnoreCase(name)) return m;
@@ -200,9 +224,10 @@ public class ProtectionCoreScreen extends AbstractContainerScreen<ProtectionCore
 
         graphics.drawString(this.font, "§6§lInvitar Jugadores", x + 10, y + 22, 0xFFFFFF, false);
 
-        if (this.clanBtn != null) {
-            this.clanBtn.active = true;
-        }
+        // Clan/Alianzas: solo líder (núcleo de clan) o dueño (sin clan). Los miembros los ven
+        // deshabilitados → no pueden fundar un clan ni gestionar alianzas en protección ajena.
+        if (this.clanBtn != null) this.clanBtn.active = canManageClan(core);
+        if (this.aliadosBtn != null) this.aliadosBtn.active = canManageAlliances(core);
 
         boolean canManage = canManageMembers(core);
         this.nameInput.setEditable(canManage);
