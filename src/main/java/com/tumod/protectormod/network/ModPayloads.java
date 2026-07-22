@@ -256,9 +256,14 @@ public final class ModPayloads {
                 STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
-    /** Un clan para la lista del panel admin. */
+    /**
+     * Un clan para la lista del panel admin. {@code registeredProtections} = protecciones de este clan
+     * que existen realmente en el registro (ProtectionDataManager); si es menor que
+     * {@code protectionsUsed}, el clan tiene protecciones "perdidas" del registro (desincronización).
+     */
     public record AdminClanEntry(UUID clanId, String name, String leaderName, int protectionsUsed,
-                                 int maxProtections, int maxMembers, int alliesCount, List<MemberRef> members) {
+                                 int registeredProtections, int maxProtections, int maxMembers,
+                                 int alliesCount, List<MemberRef> members) {
         public static final StreamCodec<RegistryFriendlyByteBuf, AdminClanEntry> STREAM_CODEC =
                 StreamCodec.of(
                         (buf, c) -> {
@@ -266,6 +271,7 @@ public final class ModPayloads {
                             buf.writeUtf(c.name());
                             buf.writeUtf(c.leaderName());
                             buf.writeVarInt(c.protectionsUsed());
+                            buf.writeVarInt(c.registeredProtections());
                             buf.writeVarInt(c.maxProtections());
                             buf.writeVarInt(c.maxMembers());
                             buf.writeVarInt(c.alliesCount());
@@ -274,7 +280,7 @@ public final class ModPayloads {
                         buf -> new AdminClanEntry(
                                 UUIDUtil.STREAM_CODEC.decode(buf), buf.readUtf(), buf.readUtf(),
                                 buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
-                                MemberRef.LIST_CODEC.decode(buf)));
+                                buf.readVarInt(), MemberRef.LIST_CODEC.decode(buf)));
         public static final StreamCodec<RegistryFriendlyByteBuf, List<AdminClanEntry>> LIST_CODEC =
                 STREAM_CODEC.apply(ByteBufCodecs.list());
     }

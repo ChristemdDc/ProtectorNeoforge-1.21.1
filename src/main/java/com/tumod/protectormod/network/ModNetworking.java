@@ -662,6 +662,9 @@ public class ModNetworking {
         if (server == null) return;
         ClanSavedData clanData = ClanSavedData.get(player.serverLevel());
 
+        // Cuenta de protecciones registradas por clanId (para detectar desincronización con protectionsUsed).
+        java.util.Map<java.util.UUID, Integer> registeredByClan = new java.util.HashMap<>();
+
         List<ModPayloads.AdminProtEntry> prots = new ArrayList<>();
         for (ServerLevel lvl : server.getAllLevels()) {
             ProtectionDataManager mgr = ProtectionDataManager.get(lvl);
@@ -681,6 +684,7 @@ public class ModNetworking {
                     isAdmin = core.isAdmin();
                     if (core.getClanName() != null && !core.getClanName().isEmpty()) clanName = core.getClanName();
                 }
+                if (ownerClan != null) registeredByClan.merge(ownerClan.clanId, 1, Integer::sum);
                 prots.add(new ModPayloads.AdminProtEntry(pos, dim, ownerName, clanName, level, radius, isAdmin));
             }
         }
@@ -694,8 +698,9 @@ public class ModNetworking {
                         ? cm.name : resolveName(server, clanData, m);
                 members.add(new ModPayloads.MemberRef(m, name, m.equals(c.leaderUUID)));
             }
+            int registered = registeredByClan.getOrDefault(c.clanId, 0);
             clans.add(new ModPayloads.AdminClanEntry(c.clanId, c.name, c.leaderName,
-                    c.protectionsUsed, c.maxProtections, c.maxMembers, c.allies.size(), members));
+                    c.protectionsUsed, registered, c.maxProtections, c.maxMembers, c.allies.size(), members));
         }
 
         PacketDistributor.sendToPlayer(player, new ModPayloads.AdminPanelDataPayload(prots, clans));
